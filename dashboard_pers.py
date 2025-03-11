@@ -62,14 +62,19 @@ fig_receita.update_traces(textposition="outside")
 fig_receita.update_xaxes(categoryorder="array", categoryarray=list(mes_dict.keys()))
 
 # --- GRÁFICO 3: QUANTIDADE TOTAL DE VENDAS POR PRODUTO ---
-df_produtos = df_filtrado.groupby("Nome do Produto", as_index=False).agg({"Nome do Produto": "count"})
-df_produtos.rename(columns={"Nome do Produto": "Quantidade de Vendas"}, inplace=True)
+df_produtos = df_filtrado.groupby("Nome do Produto", as_index=False).agg({"ID da venda": "count"})
+df_produtos.rename(columns={"ID da venda": "Quantidade de Vendas"}, inplace=True)
 
-fig_produtos = px.bar(df_produtos, x="Nome do Produto", y="Quantidade de Vendas", title="Vendas por Produto",
+# Criar o gráfico corrigido
+fig_produtos = px.bar(df_produtos, 
+                      x="Nome do Produto", 
+                      y="Quantidade de Vendas", 
+                      title="Vendas por Produto",
                       labels={"Nome do Produto": "Produto", "Quantidade de Vendas": "Total de Vendas"},
                       text="Quantidade de Vendas")
 
 fig_produtos.update_traces(textposition="outside")
+
 
 # Criar colunas para disposição dos gráficos
 col1, col2, col3 = st.columns(3)
