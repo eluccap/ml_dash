@@ -116,8 +116,15 @@ col3.plotly_chart(fig_produtos)
 # --- EXIBIR MÉTRICAS DE LTV ---
 st.sidebar.header("📊 Métricas Gerais de LTV")
 if not metricas_gerais.empty:
-    st.sidebar.metric(label="Compras médias por cliente", value=round(float(metricas_gerais.loc[0, "Valor"].replace("R$ ", "").replace(".", "").replace(",", ".")), 2))
-    st.sidebar.metric(label="Valor médio gasto por cliente", value=metricas_gerais.loc[1, "Valor"])
+    try:
+        compras_medias = round(float(str(metricas_gerais.loc[0, "Valor"]).replace("R$ ", "").replace(".", "").replace(",", ".")), 2)
+        valor_medio_gasto = str(metricas_gerais.loc[1, "Valor"])
+
+        st.sidebar.metric(label="Compras médias por cliente", value=compras_medias)
+        st.sidebar.metric(label="Valor médio gasto por cliente", value=valor_medio_gasto)
+    except (KeyError, IndexError, ValueError) as e:
+        st.sidebar.error("Erro ao calcular as métricas de LTV. Verifique os dados.")
+
 
 # Exibir tabela de compradores recorrentes
 st.header("🔁 Compradores Recorrentes")
