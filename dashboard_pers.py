@@ -117,7 +117,7 @@ col3.plotly_chart(fig_produtos)
 st.sidebar.header("📊 Métricas Gerais de LTV")
 if not metricas_gerais.empty:
     try:
-        compras_medias = round(float(str(metricas_gerais.loc[0, "Valor"]).replace("R$ ", "").replace(".", "").replace(",", ".")), 2)
+        compras_medias = round(float(str(metricas_gerais.loc[0, "Valor"]).replace("R$ ", "").replace(".", "").replace(",", ".")), 3)
         valor_medio_gasto = str(metricas_gerais.loc[1, "Valor"])
 
         st.sidebar.metric(label="Compras médias por cliente", value=compras_medias)
