@@ -6,7 +6,7 @@ import plotly.express as px
 st.set_page_config(page_title="Marcia Lima - Dashboard KPIs", page_icon="📊", layout="wide")
 
 # Definição do mês e ano base
-mes_ano = "jan25"
+mes_ano = "fev25"
 
 # Carregar os dados de vendas
 df_inicial = pd.read_excel(f"Vendas-totais-{mes_ano}.xlsx")
