@@ -67,6 +67,10 @@ def calcular_ltv(df):
         "Valor": [compras_medias_por_pessoa, f'R$ {valor_medio_por_pessoa:,.2f}'.replace(",", "X").replace(".", ",").replace("X", ".")]
     })
 
+    # Mascarar os CPFs (exibir apenas os últimos 3 dígitos)
+    compradores["CPF"] = compradores["CPF"].astype(str).apply(lambda x: f"***.***.***-{x[-3:]}" if len(x) >= 3 else "***")
+
+
     return compradores, metricas_gerais
 
 # --- Recalcular métricas de LTV ---
