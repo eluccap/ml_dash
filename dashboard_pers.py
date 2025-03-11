@@ -5,9 +5,8 @@ import plotly.express as px
 # Definição do mês e ano base
 mes_ano = "jan25"
 
-# Carregar os dados
+# Carregar os dados de vendas
 df_inicial = pd.read_excel(f"Vendas-totais-{mes_ano}.xlsx")
-df_ltv = pd.read_excel(f"LTV-{mes_ano}.xlsx")
 
 # Configuração do layout da página
 st.set_page_config(page_title="Marcia Lima - Dashboard KPIs", layout="wide")
@@ -39,6 +38,32 @@ df_filtrado = df_inicial[
     (df_inicial["Comercial"].isin(caixa_filtro4))
 ]
 
+# --- Função para calcular o LTV ---
+def calcular_ltv(df):
+    """Calcula o LTV com base no dataframe filtrado."""
+    if df.empty:
+        return pd.DataFrame(columns=["CPF", "Comprador", "total_compras", "valor_total_gasto", "valor_medio_por_compra", "produtos_mais_comprados"]), pd.DataFrame(columns=["Métrica", "Valor"])
+
+    compradores = df.groupby(["CPF", "Comprador"]).agg(
+        total_compras=("ID da venda", "count"),
+        valor_total_gasto=("Receita total", "sum"),
+        valor_medio_por_compra=("Receita total", "mean"),
+        produtos_mais_comprados=("Nome do Produto", lambda x: x.mode()[0] if not x.mode().empty else None)
+    ).reset_index()
+
+    compras_medias_por_pessoa = compradores["total_compras"].mean()
+    valor_medio_por_pessoa = compradores["valor_total_gasto"].mean()
+
+    metricas_gerais = pd.DataFrame({
+        "Métrica": ["Compras médias por pessoa", "Valor médio gasto por pessoa"],
+        "Valor": [compras_medias_por_pessoa, valor_medio_por_pessoa]
+    })
+
+    return compradores, metricas_gerais
+
+# --- Recalcular métricas de LTV com base nos filtros aplicados ---
+compradores_recorrentes, metricas_gerais = calcular_ltv(df_filtrado)
+
 # --- GRÁFICO 1: QUANTIDADE TOTAL DE VENDAS POR MÊS ---
 df_vendas = df_filtrado.groupby(["Mês", "Mês_Numérico"], as_index=False).agg({"Nome do Produto": "count"})
 df_vendas = df_vendas.sort_values("Mês_Numérico")
@@ -65,7 +90,6 @@ fig_receita.update_xaxes(categoryorder="array", categoryarray=list(mes_dict.keys
 df_produtos = df_filtrado.groupby("Nome do Produto", as_index=False).agg({"ID da venda": "count"})
 df_produtos.rename(columns={"ID da venda": "Quantidade de Vendas"}, inplace=True)
 
-# Criar o gráfico corrigido
 fig_produtos = px.bar(df_produtos, 
                       x="Nome do Produto", 
                       y="Quantidade de Vendas", 
@@ -75,7 +99,6 @@ fig_produtos = px.bar(df_produtos,
 
 fig_produtos.update_traces(textposition="outside")
 
-
 # Criar colunas para disposição dos gráficos
 col1, col2, col3 = st.columns(3)
 
@@ -84,3 +107,12 @@ col1.plotly_chart(fig_vendas)   # Gráfico de Vendas por Mês
 col2.plotly_chart(fig_receita)  # Gráfico de Faturamento por Mês
 col3.plotly_chart(fig_produtos) # Gráfico de Vendas por Produto
 
+# --- EXIBIR MÉTRICAS DE LTV NO DASHBOARD ---
+st.sidebar.header("📊 Métricas Gerais de LTV")
+if not metricas_gerais.empty:
+    st.sidebar.metric(label="Compras médias por cliente", value=round(metricas_gerais.loc[metricas_gerais["Métrica"] == "Compras médias por pessoa", "Valor"].values[0], 2))
+    st.sidebar.metric(label="Valor médio gasto por cliente", value=f'R$ {round(metricas_gerais.loc[metricas_gerais["Métrica"] == "Valor médio gasto por pessoa", "Valor"].values[0], 2)}')
+
+# Exibir tabela de compradores recorrentes
+st.header("🔁 Compradores Recorrentes")
+st.dataframe(compradores_recorrentes)
